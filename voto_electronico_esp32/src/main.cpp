@@ -11,27 +11,29 @@ WiFiClient WIFI_CLIENT;
 #include <PubSubClient.h>
 PubSubClient MQTT_CLIENT;
 
-// Para el display 
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-
-
 #define SSID "UA-Alumnos"
 #define PASSWORD "41umn05WLC"
 #define TOPIC "datos_voto_electronico"
 #define TOPIC_vAleatorio "datos_voto_electronico/aleatorio"
 
+// Para el display 
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#define SCREEN_WIDTH 128 // Ancho del display OLED en píxeles
+#define SCREEN_HEIGHT 64 // Alto del display OLED en píxeles
+// Declaración del display conectado por I2C (pines SDA, SCL)
+// El -1 indica que el display no tiene un pin de reset físico
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 
 // Definicion de las funciones -------------------------------------------------------------------------------------------------------
-
 void reconnect();
 void setup();
 void loop();
 void callback(char*, byte*, unsigned int);
 void publishRandomInt();
-
+void displaySetup();
 // -----------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -57,8 +59,7 @@ void setup() {
   Serial.println(WiFi.localIP());
   Serial.println("");
 
-
-
+  displaySetup();
 }
 
 void loop() {
@@ -124,4 +125,33 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Contenido:\t");
   Serial.println(message.c_str());
 
+}
+
+// 
+void displaySetup() {
+  Serial.begin(115200);
+
+  // Inicializar el display con la dirección I2C 0x3C (la más común)
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+    Serial.println(F("Fallo al inicializar la pantalla SSD1306"));
+    for(;;); // Bucle infinito si falla
+  }
+
+  // Limpiar el buffer de la pantalla (borrar cualquier basura previa)
+  display.clearDisplay();
+
+  // Configurar el tamaño y color del texto
+  display.setTextSize(1);             // Escala 1:1
+  display.setTextColor(SSD1306_WHITE); // Texto blanco (se ilumina el píxel)
+  display.setCursor(0, 10);           // Empezar a escribir en la coordenada X:0, Y:10
+
+  // Escribir nuestro mensaje de prueba
+  display.println(F("   Pantalla OK!"));
+  display.println(F(""));
+  display.println(F(" Lista para arrancar"));
+  display.println(F("  con el proyecto de"));
+  display.println(F("    Laboratorio I"));
+
+  // Enviar el buffer a la pantalla para que se dibuje
+  display.display();
 }
