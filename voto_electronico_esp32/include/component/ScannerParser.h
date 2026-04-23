@@ -5,6 +5,9 @@
 #include <vector>
 #include <HardwareSerial.h>
 
+
+
+
 class ScannerParser {
 private:
     /**
