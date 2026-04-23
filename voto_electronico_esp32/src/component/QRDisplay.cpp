@@ -1,4 +1,4 @@
-#include "QRDisplay.h"
+#include "component/QRDisplay.h"
 #include <qrcode.h>
 
 // Para el display 

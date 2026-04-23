@@ -1,4 +1,4 @@
-#include "ConnectionManager.h"
+#include "component/ConnectionManager.h"
 #include <Arduino.h> // Asegúrate de incluir esto para que reconozca uint8_t
 
 // Para la conexion a wifi y el mqtt

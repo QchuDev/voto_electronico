@@ -7,8 +7,8 @@ ConnectionManager coMan;    // MQTT connection  ->> Sub and Pub
 QRDisplay qrDis;            // Display of the QR
   
 void setup() {
-  Serial.begin(115200);
-  delay(10);
+  Serial.begin(115200); delay(10);
+  
   coMan.setup();          // Setup MQTT Connection
   qrDis.setup();          // Setup Display
 }
