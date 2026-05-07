@@ -28,17 +28,18 @@ void QRDisplay::update() {
 }
 
 
-void QRDisplay::drawQR() {
+void QRDisplay::drawQR(String contenido) {
   QRCode qrcode;
-  // URL de tu EC2. Ajusta la versión (el '3') si la URL es muy larga.
-  String url = "http://44.196.23.48/votar"; 
   
+  // El buffer depende de la versión (3 es suficiente para tokens)
   uint8_t qrcodeData[qrcode_getBufferSize(3)];
-  qrcode_initText(&qrcode, qrcodeData, 3, 0, url.c_str());
+  
+  // Inicializamos el QR con el 'contenido' que llega (el token de AWS)
+  qrcode_initText(&qrcode, qrcodeData, 3, 0, contenido.c_str());
 
   display.clearDisplay();
 
-  // Escalar el QR: cada punto del QR será un bloque de 2x2 píxeles para que se vea mejor
+  // Centrado y escalado
   int escala = 2;
   int x_offset = (128 - (qrcode.size * escala)) / 2;
   int y_offset = (64 - (qrcode.size * escala)) / 2;
