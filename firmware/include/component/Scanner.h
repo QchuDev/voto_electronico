@@ -1,14 +1,12 @@
-#ifndef SCANNERPARSER_H
-#define SCANNERPARSER_H
+#ifndef SCANNER_H
+#define SCANNER_H
 
 #include <iostream>
 #include <vector>
 #include <HardwareSerial.h>
 
 
-
-
-class ScannerParser {
+class Scanner {
 private:
     /**
      *  We will save on a buffer the data that wasnt extracted yet
