@@ -28,6 +28,12 @@
         <h3>Votante Detectado</h3>
         <p><strong>Nombre:</strong> <span id="nom"></span></p>
         <p><strong>DNI:</strong> <span id="dni"></span></p>
+
+        <!-- NUEVO: Alerta de antecedentes -->
+        <div id="alerta-penal" class="hidden" style="background: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin: 10px 0; border: 1px solid #c62828;">
+            ⚠️ <strong>ATENCIÓN:</strong> El ciudadano posee antecedentes penales registrados.
+        </div>
+
         <div class="btn-container">
             <button class="btn-hab" onclick="decidir(true)">HABILITAR</button>
             <button class="btn-bloq" onclick="decidir(false)">BLOQUEAR</button>
@@ -37,7 +43,7 @@
 
 <script>
     // Conectamos al backend que ya tenés corriendo
-    const socket = io('http://localhost:3000');
+    const socket = io('http://44.196.23.48:3000');
     let dniActual = "";
 
     // Escuchamos cuando el backend avisa que alguien escaneó su DNI
@@ -46,21 +52,27 @@
         document.getElementById('nom').innerText = elector.nombre + " " + elector.apellido;
         document.getElementById('dni').innerText = elector.dni;
         
+        // Lógica de antecedentes
+        const alerta = document.getElementById('alerta-penal');
+        if (elector.antecedentes) {
+            alerta.classList.remove('hidden');
+        } else {
+            alerta.classList.add('hidden');
+        }
+
         document.getElementById('esperando').classList.add('hidden');
         document.getElementById('datos-votante').classList.remove('hidden');
     });
 
     function decidir(autorizado) {
-        const estado = autorizado ? 'habilitado' : 'bloqueado';
-        
-        // Enviamos la decisión al backend
+        const decision = autorizado ? 'aprobado' : 'rechazado';
+
         socket.emit('decision_presidente', {
             dni: dniActual,
-            estado: estado
+            decision: decision
         });
 
-        // Limpiamos la pantalla
-        alert("Acción enviada: " + estado);
+        alert("Acción enviada: " + decision);
         document.getElementById('datos-votante').classList.add('hidden');
         document.getElementById('esperando').classList.remove('hidden');
     }

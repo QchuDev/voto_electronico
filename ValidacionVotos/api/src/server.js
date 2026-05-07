@@ -1,33 +1,61 @@
+// index.js
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import cors from 'cors';
+import mqtt from 'mqtt';
+import cors from 'cors'; // Asegúrate de tenerlo instalado: npm install cors
 import * as VotoCtrl from './controllers/electorController.js';
 
 const app = express();
+app.use(cors()); // Middleware para que la web no rebote
+app.use(express.json()); // <--- CRÍTICO: Para que el ESP32 pueda mandar el DNI en JSON
+
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: { origin: "*" } });
+const io = new Server(httpServer, { 
+    cors: { 
+        origin: "*", 
+        methods: ["GET", "POST"] 
+    } 
+});
 
-app.use(cors());
-app.use(express.json());
-
-// Ruta para que el ESP32 mande el DNI
+// --- RUTA PARA EL ESP32 (POST DNI) ---
 app.post('/api/scan', (req, res) => VotoCtrl.procesarEscaneo(req, res, io));
 
-// Lógica de WebSockets
-io.on('connection', (socket) => {
-  console.log('Alguien se conectó:', socket.id);
+// --- CONFIGURACIÓN MQTT LOCAL ---
+const mqttClient = mqtt.connect('mqtt://localhost:1883');
 
-  // Cuando el presidente decide
-  socket.on('decision_presidente', (data) => {
-    // data = { dni: '123...', estado: 'habilitado' }
-    console.log(`Presidente decidió: ${data.estado} para DNI: ${data.dni}`);
-    
-    // Reenviar la decisión a TODOS (o filtrar por sala de mesa)
-    io.emit('cambio_estado_voto', data.estado);
-  });
+mqttClient.on('connect', () => {
+    console.log('✅ Conectado al broker MQTT en el puerto 1883');
+});
+
+// --- LÓGICA DE WEBSOCKETS ---
+io.on('connection', (socket) => {
+    console.log('Cliente conectado:', socket.id);
+
+    socket.on('decision_presidente', async (data) => {
+        if (data.decision === 'aprobado') {
+            const tokenVoto = VotoCtrl.generarYGuardarToken(data.dni);
+            const payload = JSON.stringify({ 
+                token: tokenVoto, 
+                dni: data.dni,
+                mensaje: "Escanee para votar" 
+            });
+            
+            mqttClient.publish('voto/mesa1/display', payload);
+            socket.emit('token_enviado_al_hardware', { success: true });
+        }
+    });
+
+    socket.on('validar_qr_app', (tokenEscaneado) => {
+        const esValido = VotoCtrl.validarToken(tokenEscaneado);
+        if (esValido) {
+            socket.emit('acceso_concedido', { canVote: true });
+        } else {
+            socket.emit('acceso_denegado', { error: "Código inválido" });
+        }
+    });
 });
 
 httpServer.listen(3000, () => {
-  console.log('Backend corriendo en http://localhost:3000');
+    console.log('🚀 Server running on port 3000');
 });
