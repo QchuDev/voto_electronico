@@ -1,4 +1,23 @@
 import * as ElectorModel from '../models/electorModel.js';
+// Agregamos una utilidad para generar tokens cortos y únicos
+import { randomBytes } from 'crypto';
+
+
+// Un objeto temporal para guardar tokens activos (en el futuro esto va a Redis o DB)
+const tokensActivos = new Map();
+
+export const habilitarVotante = async (dni, io) => {
+  // 1. Generamos un token único de 6-8 caracteres
+  const tokenVoto = randomBytes(4).toString('hex').toUpperCase(); 
+  
+  // 2. Lo vinculamos al DNI y le damos una expiración (ej. 10 minutos)
+  tokensActivos.set(tokenVoto, { dni, expira: Date.now() + 600000 });
+
+  // 3. Emitimos el evento con el TOKEN para que el presidente lo muestre como QR
+  io.emit('voto_habilitado', { dni, tokenVoto });
+  
+  console.log(`Token generado para ${dni}: ${tokenVoto}`);
+};
 
 export const procesarEscaneo = async (req, res, io) => {
   const { dni } = req.body;
