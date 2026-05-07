@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include "component/ConnectionManager.h"
 #include "component/QRDisplay.h"
-#include "component/ScannerParser.h"
+#include "component/Scanner.h"
 
 // Components 
 ConnectionManager coMan;    // MQTT connection  ->> Sub and Pub
 QRDisplay qrDis;            // Display of the QR
-ScannerParser scPar;        // Class - reads - bar codes ... unga unga  
+Scanner scanner;        // Class - reads - bar codes ... unga unga  
 
 
 // Function definition (for thread creation)
@@ -18,7 +18,7 @@ void connectionTask(void * pvParameters);
 void setup() {
   Serial.begin(9600); delay(10);
   
-  scPar.setup();          // Setup parser
+  scanner.setup();          // Setup parser
   qrDis.setup();          // Setup Display
   coMan.setup();          // Setup MQTT Connection
   
@@ -40,7 +40,7 @@ void setup() {
  * Main LOOP
  */
 void loop() {
-  scPar.update();         // Update the scanner parser
+  scanner.update();         // Update the scanner parser
   qrDis.update();         // Update the display to draw
   
   delay(50);            // 50ms = 0.050s
@@ -54,7 +54,7 @@ void loop() {
 void connectionTask(void * pvParameters) {
     for(;;) { // Bucle infinito de la tarea
         coMan.update(); 
-        coMan.publishScannerData(scPar.getData());
+        coMan.publishScannerData(scanner.getData());
         
         // The watchdog can reset the ESP32 so we add a delay to let the processor breathe
         vTaskDelay(pdMS_TO_TICKS(1000));  // Delay of 1s 

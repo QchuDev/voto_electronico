@@ -16,7 +16,6 @@ void Scanner::update() {
     // Mientras haya bytes en el buffer de hardware de la UART
     while (HScanner.available() > 0) {
         int raw = HScanner.read();
-        
         if (raw > 0) { 
             char c = (char)raw;
 
