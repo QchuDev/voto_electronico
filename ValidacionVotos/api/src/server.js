@@ -34,9 +34,13 @@ io.on('connection', (socket) => {
 
     socket.on('decision_presidente', async (data) => {
         if (data.decision === 'aprobado') {
-            const tokenVoto = VotoCtrl.generarYGuardarToken(data.dni);
+            // CAMBIO AQUÍ: Usamos el nombre real 'habilitarVotante' 
+            // y le pasamos (dni, io) como definiste en el controller
+            await VotoCtrl.habilitarVotante(data.dni, io);
+
+    
             const payload = JSON.stringify({ 
-                token: tokenVoto, 
+                token: "TOKEN_PROVISORIO", // Tendrías que capturar el token que genera la función
                 dni: data.dni,
                 mensaje: "Escanee para votar" 
             });

@@ -17,6 +17,7 @@ export const habilitarVotante = async (dni, io) => {
   io.emit('voto_habilitado', { dni, tokenVoto });
   
   console.log(`Token generado para ${dni}: ${tokenVoto}`);
+  return tokenVoto;
 };
 
 export const procesarEscaneo = async (req, res, io) => {
